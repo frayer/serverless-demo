@@ -1,0 +1,135 @@
+service: ballot
+frameworkVersion: '2'
+
+custom:
+  dynamoDBTable: ${self:service}-${opt:stage, self:provider.stage}
+  kinesisStream: ${self:service}-${opt:stage, self:provider.stage}
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: 20201221
+  region: us-east-2
+  environment:
+    DYNAMODB_TABLE: ${self:custom.dynamoDBTable}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchWriteItem
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.dynamoDBTable}"
+        - Effect: Allow
+          Action:
+            - kinesis:*
+          Resource:
+          - Fn::GetAtt: [ BallotStream, Arn ]
+
+functions:
+  ###
+  # httpApi Event Handlers
+  ###
+  ballot_create:
+    handler: handler.create_ballot
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot
+         method: post
+
+  ballot_update:
+    handler: handler.update_ballot
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot
+         method: patch
+
+  ballot_list:
+    handler: handler.get_ballots
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot
+         method: get
+
+  ballot_get:
+    handler: handler.get_ballot
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot/{ballot_id}
+         method: get
+
+  ballot_delete:
+    handler: handler.delete_ballot
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot/{ballot_id}
+         method: delete
+
+  vote_record:
+    handler: handler.record_vote
+    memorySize: 128
+    events:
+     - httpApi:
+         path: /ballot/{ballot_id}/measures/{measure_id}
+         method: patch
+
+  ###
+  # Stream Event Handlers
+  ###
+  process_ballot_update:
+    handler: handler.process_ballot_update
+    memorySize: 128
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [BallotTable, StreamArn]
+
+  process_vote:
+    handler: handler.process_vote
+    memorySize: 128
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::GetAtt: [BallotStream, Arn]
+          batchSize: 10
+          batchWindow: 1
+
+resources:
+  Resources:
+    BallotTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.dynamoDBTable}
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+    BallotStream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${self:custom.kinesisStream}
+        ShardCount: 1
