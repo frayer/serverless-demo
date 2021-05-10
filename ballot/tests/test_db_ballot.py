@@ -59,5 +59,29 @@ class TestBallotIntegration(unittest.TestCase):
         db.ballot.delete_ballot('my-ballot-2')
 
 
+    def test_get_single_ballot(self):
+        db.ballot.create_ballot({
+            "name": "My Ballot 1",
+            "measures": [
+                "Measure A",
+                "Measure B"
+            ]
+        })
+        db.ballot.create_ballot({
+            "name": "My Ballot 2",
+            "measures": [
+                "Measure C",
+                "Measure D"
+            ]
+        })
+
+        ballot = db.ballot.get_ballot("my-ballot-2")
+
+        self.assertEqual(ballot["name"], "My Ballot 2")
+
+        db.ballot.delete_ballot('my-ballot-1')
+        db.ballot.delete_ballot('my-ballot-2')
+
+
 if __name__ == '__main__':
     unittest.main()

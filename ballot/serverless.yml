@@ -108,7 +108,7 @@ functions:
           arn:
             Fn::GetAtt: [BallotStream, Arn]
           batchSize: 10
-          batchWindow: 1
+          batchWindow: 5
 
 resources:
   Resources:
@@ -127,8 +127,8 @@ resources:
           - AttributeName: sk
             KeyType: RANGE
         ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 5
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 

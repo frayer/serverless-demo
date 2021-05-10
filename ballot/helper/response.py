@@ -1,6 +1,11 @@
 import json
 
 
+def default_code(http_status_code):
+    return {
+        "statusCode": http_status_code,
+    }
+
 def create_ballot_success_response(ballot_id):
     location = f"/ballot/{ballot_id}"
     response = {

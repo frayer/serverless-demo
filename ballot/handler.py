@@ -1,15 +1,10 @@
+import base64
 import json
 import os
 
-import boto3
-from boto3.dynamodb.conditions import Key
-
 import db.ballot
+import db.stream
 import helper.response
-
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
-
 
 def default(event, context):
     print(event)
@@ -40,6 +35,7 @@ def create_ballot(event, context):
     return helper.response.create_ballot_success_response(ballot_id)
 
 
+# Low priority for demo
 def update_ballot(event, context):
     """Updates just the open/close property of a Ballot"""
     return default(event, context)
@@ -67,13 +63,27 @@ def delete_ballot(event, context):
 
 def record_vote(event, context):
     """Writes a new Vote to a Kinesis Stream"""
-    return default(event, context)
+    ballot_id = event['pathParameters']['ballot_id']
+    measure_id = event['pathParameters']['measure_id']
+    db.stream.record_vote_event(ballot_id, measure_id)
+    return helper.response.default_code(200)
 
 
 def process_ballot_update(event, context):
+    """Processes an Ballot Update from the DynamoDB Stream"""
     return default(event, context)
 
 
 def process_vote(event, context):
-    """Increments the Vote counter for a given Ballot Measure"""
-    return default(event, context)
+    """Increments the Vote counter for a given Ballot Measure Vote Event"""
+    for record in event['Records']:
+        b64Data = record['kinesis']['data']
+        data = base64.b64decode(b64Data).decode(('utf-8'))
+        cloud_event = json.loads(data)
+        print(f"subject = {cloud_event['subject']}")
+        [ballot_id, measure_id] = cloud_event['subject'].split('#')
+        db.ballot.increment_vote_count(ballot_id, measure_id)
+
+    return {
+        "status": "OK"
+    }
