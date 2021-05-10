@@ -1,6 +1,10 @@
 service: ballot
 frameworkVersion: '2'
 
+package:
+  patterns:
+    - '!test-requests/**'
+
 custom:
   dynamoDBTable: ${self:service}-${opt:stage, self:provider.stage}
   kinesisStream: ${self:service}-${opt:stage, self:provider.stage}

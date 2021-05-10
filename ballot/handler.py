@@ -4,6 +4,9 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Key
 
+import db.ballot
+import helper.response
+
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 
@@ -31,38 +34,10 @@ def default(event, context):
 
 
 def create_ballot(event, context):
-    """Writes a new Ballot to DynamoDB"""
-    body = json.loads(event['body'])
-    ballot_slug = body['name'].lower().replace(' ', '-')
-
-    table.put_item(Item={
-        "pk": "BALLOTS",
-        "sk": f"META#{ballot_slug}",
-        "name": body['name'],
-        "open": False
-    })
-
-    for measure in body['measures']:
-        measure_slug = measure.lower().replace(' ', '-')
-        table.put_item(Item={
-            "pk": f"BALLOT#{ballot_slug}",
-            "sk": f"MEASURE#{measure_slug}",
-            "name": measure,
-            "votes": 0
-        })
-
-    location = f"/ballot/{ballot_slug}"
-    response = {
-        "statusCode": 201,
-        "headers": {
-            "Location": location
-        },
-        "body": json.dumps({
-            "location": location
-        })
-    }
-
-    return response
+    """Stores a new Ballot"""
+    ballot = json.loads(event['body'])
+    ballot_id = db.ballot.create_ballot(ballot)
+    return helper.response.create_ballot_success_response(ballot_id)
 
 
 def update_ballot(event, context):
@@ -81,7 +56,7 @@ def get_ballot(event, context):
 
 
 def delete_ballot(event, context):
-    """Deletes a Ballot from DynamoDB"""
+    """Deletes a Ballot"""
     ballot_id = event['pathParameters']['ballot_id']
     table.delete_item(
         Key={
@@ -91,7 +66,8 @@ def delete_ballot(event, context):
     )
 
     measures = table.query(
-        KeyConditionExpression = Key('pk').eq(f"BALLOT#{ballot_id}") & Key('sk').begins_with(f"MEASURE#")
+        KeyConditionExpression=Key('pk').eq(
+            f"BALLOT#{ballot_id}") & Key('sk').begins_with(f"MEASURE#")
     )
     with table.batch_writer() as batch:
         print(f"Found {len(measures['Items'])} to delete")
