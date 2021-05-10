@@ -47,47 +47,22 @@ def update_ballot(event, context):
 
 def get_ballots(event, context):
     """Returns all Ballots"""
-    return default(event, context)
+    ballots = db.ballot.get_ballots()
+    return helper.response.get_ballots_success_response(ballots)
 
 
 def get_ballot(event, context):
     """Returns a specific Ballot"""
-    return default(event, context)
+    ballot_id = event['pathParameters']['ballot_id']
+    ballot = db.ballot.get_ballot(ballot_id)
+    return helper.response.get_ballot_success_response(ballot)
 
 
 def delete_ballot(event, context):
     """Deletes a Ballot"""
     ballot_id = event['pathParameters']['ballot_id']
-    table.delete_item(
-        Key={
-            "pk": "BALLOTS",
-            "sk": f"META#{ballot_id}"
-        }
-    )
-
-    measures = table.query(
-        KeyConditionExpression=Key('pk').eq(
-            f"BALLOT#{ballot_id}") & Key('sk').begins_with(f"MEASURE#")
-    )
-    with table.batch_writer() as batch:
-        print(f"Found {len(measures['Items'])} to delete")
-        for measure in measures['Items']:
-            print(f"Deleting {measure['pk']} : {measure['sk']}")
-            batch.delete_item(
-                Key={
-                    "pk": measure['pk'],
-                    "sk": measure['sk']
-                }
-            )
-
-    response = {
-        "statusCode": 200,
-        "body": json.dumps({
-            "deleted": f"/ballot/{ballot_id}"
-        })
-    }
-
-    return response
+    db.ballot.delete_ballot(ballot_id)
+    return helper.response.delete_ballot_success_response(ballot_id)
 
 
 def record_vote(event, context):

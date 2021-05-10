@@ -44,7 +44,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot
+         path: /ballots
          method: post
 
   ballot_update:
@@ -52,7 +52,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot
+         path: /ballots/{ballot_id}
          method: patch
 
   ballot_list:
@@ -60,7 +60,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot
+         path: /ballots
          method: get
 
   ballot_get:
@@ -68,7 +68,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot/{ballot_id}
+         path: /ballots/{ballot_id}
          method: get
 
   ballot_delete:
@@ -76,7 +76,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot/{ballot_id}
+         path: /ballots/{ballot_id}
          method: delete
 
   vote_record:
@@ -84,7 +84,7 @@ functions:
     memorySize: 128
     events:
      - httpApi:
-         path: /ballot/{ballot_id}/measures/{measure_id}
+         path: /ballots/{ballot_id}/measures/{measure_id}
          method: patch
 
   ###
