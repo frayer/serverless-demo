@@ -5,6 +5,7 @@ import os
 import db.ballot
 import db.stream
 import helper.response
+import helper.request
 
 def default(event, context):
     print(event)
@@ -76,13 +77,12 @@ def process_ballot_update(event, context):
 
 def process_vote(event, context):
     """Increments the Vote counter for a given Ballot Measure Vote Event"""
-    for record in event['Records']:
-        b64Data = record['kinesis']['data']
-        data = base64.b64decode(b64Data).decode(('utf-8'))
-        cloud_event = json.loads(data)
-        print(f"subject = {cloud_event['subject']}")
-        [ballot_id, measure_id] = cloud_event['subject'].split('#')
-        db.ballot.increment_vote_count(ballot_id, measure_id)
+    cloud_events = helper.request.kinesis_cloud_events(event)
+    ballot_counts = helper.request.ballot_counts(cloud_events)
+
+    for ballot_id, ballot in ballot_counts.ballots.items():
+        for measure_id, measure in ballot.measures.items():
+            db.ballot.increment_vote_count(ballot_id, measure_id, measure.vote_total)
 
     return {
         "status": "OK"

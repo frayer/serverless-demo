@@ -102,7 +102,7 @@ def delete_ballot(ballot_id):
     return ballot_id
 
 
-def increment_vote_count(ballot_id, measure_id):
+def increment_vote_count(ballot_id, measure_id, amount):
     table.update_item(
         Key={
             'pk': f"BALLOT#{ballot_id}",
@@ -110,6 +110,6 @@ def increment_vote_count(ballot_id, measure_id):
         },
         UpdateExpression='SET votes = votes + :incr',
         ExpressionAttributeValues={
-            ':incr': 1
+            ':incr': amount
         }
     )
