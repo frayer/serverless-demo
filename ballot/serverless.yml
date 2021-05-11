@@ -4,6 +4,7 @@ frameworkVersion: '2'
 package:
   patterns:
     - '!test-requests/**'
+    - '!.venv/**'
 
 custom:
   dynamoDBTable: ${self:service}-${opt:stage, self:provider.stage}

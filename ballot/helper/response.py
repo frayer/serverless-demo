@@ -1,5 +1,6 @@
 import json
 
+import helper.encoders
 
 def default_code(http_status_code):
     return {
@@ -33,7 +34,7 @@ def get_ballots_success_response(ballots):
 def get_ballot_success_response(ballot):
     response = {
         "statusCode": 200,
-        "body": json.dumps(ballot)
+        "body": json.dumps(ballot, cls=helper.encoders.DecimalToIntEncoder)
     }
     return response
 
