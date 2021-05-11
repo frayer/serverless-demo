@@ -17,6 +17,8 @@ provider:
   region: us-east-2
   environment:
     DYNAMODB_TABLE: ${self:custom.dynamoDBTable}
+  httpApi:
+    cors: true
   iam:
     role:
       statements:

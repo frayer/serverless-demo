@@ -12,7 +12,8 @@ def create_ballot_success_response(ballot_id):
     response = {
         "statusCode": 201,
         "headers": {
-            "Location": location
+            "Location": location,
+            "Content-Type": "application/json"
         },
         "body": json.dumps({
             "location": location
@@ -26,7 +27,10 @@ def get_ballots_success_response(ballots):
         "statusCode": 200,
         "body": json.dumps({
             "ballots": ballots
-        })
+        }),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }
     return response
 
@@ -34,7 +38,10 @@ def get_ballots_success_response(ballots):
 def get_ballot_success_response(ballot):
     response = {
         "statusCode": 200,
-        "body": json.dumps(ballot, cls=helper.encoders.DecimalToIntEncoder)
+        "body": json.dumps(ballot, cls=helper.encoders.DecimalToIntEncoder),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }
     return response
 
@@ -45,6 +52,9 @@ def delete_ballot_success_response(ballot_id):
         "statusCode": 200,
         "body": json.dumps({
             "deleted": location
-        })
+        }),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }
     return response
