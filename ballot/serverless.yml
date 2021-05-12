@@ -17,6 +17,7 @@ provider:
   region: us-east-2
   environment:
     DYNAMODB_TABLE: ${self:custom.dynamoDBTable}
+    KINESIS_STREAM: ${self:custom.kinesisStream}
   httpApi:
     cors: true
   iam:

@@ -1,0 +1,12 @@
+{
+    "name": "Favorite AWS Serverless Product",
+    "measures": [
+        "Lambda",
+        "Fargate",
+        "DynamoDB",
+        "Kinesis",
+        "Aurora",
+        "S3",
+        "API Gateway"
+    ]
+}
